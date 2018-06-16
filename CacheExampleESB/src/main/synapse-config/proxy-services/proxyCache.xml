@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<proxy name="proxyCache" startOnLoad="true" transports="http https" xmlns="http://ws.apache.org/ns/synapse">
+    <target>
+        <inSequence>
+            <property name="FORCE_ERROR_ON_SOAP_FAULT" scope="default" type="STRING" value="true"/>
+            <property expression="$trp:SALTA-CACHE" name="SALTA" scope="default" type="STRING"/>
+            <log description="log1" level="full">
+                <property name="LOG1" value="...............LOG1......................"/>
+            </log>
+            <cache collector="false" hashGenerator="org.wso2.carbon.mediator.cache.digest.DOMHASHGenerator" maxMessageSize="2000" scope="per-host" timeout="1200">
+                <onCacheHit/>
+                <implementation maxSize="2" type="memory"/>
+            </cache>
+            <log description="log2">
+                <property name="LOG2" value="...............LOG2......................"/>
+            </log>
+            <send>
+                <endpoint>
+                    <address format="soap12" uri="http://localhost:8280/services/proxyCacheBackend">
+                        <suspendOnFailure>
+                            <errorCodes>-1</errorCodes>
+                            <progressionFactor>1.0</progressionFactor>
+                            <maximumDuration>0</maximumDuration>
+                        </suspendOnFailure>
+                    </address>
+                </endpoint>
+            </send>
+        </inSequence>
+        <outSequence>
+            <log description="log3">
+                <property name="LOG3" value="...............LOG3......................"/>
+            </log>
+            <filter regex="1" source="$ctx:SALTA">
+                <then>
+                    <log description="logthen">
+                        <property name="FILTER-THEN" value="...............NO CACHE......................"/>
+                    </log>
+                </then>
+                <else>
+                    <log description="logelse">
+                        <property name="FILTER-ELSE" value="...............CACHE......................"/>
+                    </log>
+                    <cache collector="true" scope="per-host"/>
+                </else>
+            </filter>
+            <log description="log4">
+                <property name="LOG4" value="...............LOG4......................"/>
+            </log>
+            <send/>
+        </outSequence>
+        <faultSequence>
+            <log description="log5">
+                <property name="LOG5" value="...............LOG5......................"/>
+            </log>
+            <send/>
+        </faultSequence>
+    </target>
+</proxy>
